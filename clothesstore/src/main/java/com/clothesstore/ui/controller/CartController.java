@@ -15,6 +15,13 @@ import com.clothesstore.service.ICartService;
 import com.clothesstore.ui.model.request.CartRequest;
 import com.clothesstore.ui.model.response.CartResponse;
 
+/**
+ * Controlloer para el carrito de comprar
+ * permite crear y consultar carritos de compras
+ * al igual que agregar productos al mismo
+ * @author danie
+ *
+ */
 @RestController
 @RequestMapping("api/carts")
 public class CartController {
