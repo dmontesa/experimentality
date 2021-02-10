@@ -2,7 +2,6 @@ package com.clothesstore.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,54 +47,51 @@ public class CartService implements ICartService {
 
 	@Override
 	public CartDto addProduct(String cartId, String productId) throws Exception {
-		Optional<ProductEntity> optProduct = productRepository.findByProductId(productId);
-		if (optProduct.isEmpty())
+		ProductEntity optProduct = productRepository.findByProductId(productId);
+		if (optProduct == null)
 			throw new Exception(ErrorMessages.PRODUCT_DOESNT_EXISTS.getErrorMessage());
 
-		Optional<CartEntity> optCart = cartRepository.findByCartId(cartId);
-		if (optCart.isEmpty())
+		CartEntity optCart = cartRepository.findByCartId(cartId);
+		if (optCart == null)
 			throw new Exception(ErrorMessages.CART_DOESNT_EXISTS.getErrorMessage());
 
-		CartEntity cartEntity = optCart.get();
-		ProductEntity productEntity = optProduct.get();
-
 		ProductInCart entity = new ProductInCart();
-		entity.setCart(cartEntity);
-		entity.setProduct(productEntity);
+		entity.setCart(optCart);
+		entity.setProduct(optProduct);
 		productInCart.save(entity);
 
 		ModelMapper modelMapper = new ModelMapper();
 		List<ProductDto> products = new ArrayList<>();
-		CartDto cartDto = modelMapper.map(cartEntity, CartDto.class);
-		cartEntity.getCart().stream().forEach(cart -> {
+		CartDto cartDto = modelMapper.map(optCart, CartDto.class);
+		optCart.getCart().stream().forEach(cart -> {
 			products.add(modelMapper.map(cart.getProduct(), ProductDto.class));
 		});
-		//products.add(modelMapper.map(productEntity, ProductDto.class));
-		
+
 		cartDto.setProducts(products);
-		
+		cartDto.calculateTotal();
+		cartDto.calculateTotalDiscount();
+
 		return cartDto;
 	}
 
 	@Override
 	public CartDto getCart(String cartId) throws Exception {
-		Optional<CartEntity> optCart = cartRepository.findByCartId(cartId);
-		if (optCart.isEmpty())
+		CartEntity optCart = cartRepository.findByCartId(cartId);
+		if (optCart == null)
 			throw new Exception(ErrorMessages.CART_DOESNT_EXISTS.getErrorMessage());
-		
+
 		ModelMapper modelMapper = new ModelMapper();
 		List<ProductDto> products = new ArrayList<>();
-		CartEntity cartEntity = optCart.get();
-		
-		CartDto cartDto = modelMapper.map(cartEntity, CartDto.class);
-		cartEntity.getCart().stream().forEach(cart -> {
+
+		CartDto cartDto = modelMapper.map(optCart, CartDto.class);
+		optCart.getCart().stream().forEach(cart -> {
 			products.add(modelMapper.map(cart.getProduct(), ProductDto.class));
 		});
-		
+
 		cartDto.setProducts(products);
 		cartDto.calculateTotal();
 		cartDto.calculateTotalDiscount();
-		
+
 		return cartDto;
 	}
 

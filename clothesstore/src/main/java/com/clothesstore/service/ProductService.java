@@ -1,7 +1,6 @@
 package com.clothesstore.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -34,8 +33,7 @@ public class ProductService implements IProductService {
 	@Override
 	public ProductDto createProduct(ProductDto productDto) throws Exception {
 
-		if (productDto.getProductId() != null
-				&& productRepository.findByProductId(productDto.getProductId()).isPresent())
+		if (productDto.getProductId() != null && productRepository.findByProductId(productDto.getProductId()) != null)
 			throw new Exception(ErrorMessages.PRODUCT_ALREADY_EXISTS.getErrorMessage());
 		else
 			productDto.setProductId(utils.generateProducId(5));
@@ -57,27 +55,26 @@ public class ProductService implements IProductService {
 	@Override
 	public ProductDto getProductByProductId(String productId) throws Exception {
 
-		Optional<ProductEntity> productEntity = productRepository.findByProductId(productId);
-		if (productEntity.isEmpty())
+		ProductEntity productEntity = productRepository.findByProductId(productId);
+		if (productEntity == null)
 			throw new Exception(ErrorMessages.PRODUCT_DOESNT_EXISTS.getErrorMessage());
 
 		ModelMapper modelMapper = new ModelMapper();
 
-		return modelMapper.map(productEntity.get(), ProductDto.class);
+		return modelMapper.map(productEntity, ProductDto.class);
 	}
 
 	@Override
 	public ProductDto updateProduct(String productId, ProductDto productDto) throws Exception {
 
 		ProductDto returnValue = new ProductDto();
-		Optional<ProductEntity> productEntityOpt = productRepository.findByProductId(productId);
+		ProductEntity productEntityOpt = productRepository.findByProductId(productId);
 
-		if (productEntityOpt.isEmpty())
+		if (productEntityOpt == null)
 			throw new Exception(ErrorMessages.PRODUCT_DOESNT_EXISTS.getErrorMessage());
-		ProductEntity productEntity = productEntityOpt.get();
-		productEntity.setDescription(productDto.getDescription());
+		productEntityOpt.setDescription(productDto.getDescription());
 
-		ProductEntity updatedProduct = productRepository.save(productEntity);
+		ProductEntity updatedProduct = productRepository.save(productEntityOpt);
 		BeanUtils.copyProperties(updatedProduct, returnValue);
 
 		return returnValue;
@@ -86,11 +83,11 @@ public class ProductService implements IProductService {
 	@Override
 	public void deleteProduct(String productId) throws Exception {
 
-		Optional<ProductEntity> productEntityOpt = productRepository.findByProductId(productId);
-		if (productEntityOpt.isEmpty())
+		ProductEntity productEntityOpt = productRepository.findByProductId(productId);
+		if (productEntityOpt == null)
 			throw new Exception(ErrorMessages.PRODUCT_DOESNT_EXISTS.getErrorMessage());
 
-		productRepository.delete(productEntityOpt.get());
+		productRepository.delete(productEntityOpt);
 	}
 
 	@Override
